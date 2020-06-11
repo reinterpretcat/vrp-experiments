@@ -9,11 +9,6 @@ use vrp_pragmatic::validation::ValidationContext;
 
 const PROBLEM_BUCKET_NAME_VARIABLE: &str = "PROBLEM_BUCKET_NAME";
 
-fn main() -> Result<(), Box<dyn Error>> {
-    lambda!(submit_handler);
-    Ok(())
-}
-
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SubmitResponse {
@@ -26,45 +21,49 @@ impl SubmitResponse {
     }
 }
 
+fn main() -> Result<(), Box<dyn Error>> {
+    lambda!(submit_handler);
+    Ok(())
+}
+
 fn submit_handler(
     request: ApiGatewayProxyRequest,
     _: lambda_runtime::Context,
 ) -> Result<ApiGatewayProxyResponse, HandlerError> {
-    let result = request
+    Ok(create_submit_response(request).unwrap_or_else(|err| err.to_response()))
+}
+
+fn create_submit_response(request: ApiGatewayProxyRequest) -> Result<ApiGatewayProxyResponse, AppError> {
+    let problem_result = request
         .body
         .as_ref()
         .ok_or_else(|| bad_request(Some("empty request".to_owned())))
         .and_then(|body| {
             serde_json::from_str::<Problem>(body)
                 .map_err(|err| bad_request(Some(format!("invalid problem json: '{}'", err))))
-        })
-        .and_then(|problem| {
-            ValidationContext::new(&problem, None)
-                .validate()
-                .map_err(|errors| bad_request(serde_json::to_string_pretty(&errors).ok()))
         });
 
-    let response = match result {
-        Ok(_) => {
-            let region = get_region().expect("");
-            let bucket = get_environment_variable(&PROBLEM_BUCKET_NAME_VARIABLE);
-            let key_id = Uuid::new_v4().to_string();
+    let problem = match problem_result {
+        Ok(problem) => problem,
+        Err(validation_error) => return Ok(validation_error)
+    };
 
-            let upload_result = SyncS3::new(region).and_then(|mut client| {
-                client.upload_to_s3(
-                    bucket,
-                    format!("{}/problem.json", key_id).as_str(),
-                    request.body.expect("empty body"),
-                )
-            });
+    let response = if let Err(errors) = ValidationContext::new(&problem, None).validate() {
+        bad_request(serde_json::to_string_pretty(&errors).ok())
+    } else {
+        let region = get_region()?;
+        let key_id = Uuid::new_v4().to_string();
+        let bucket = get_environment_variable(&PROBLEM_BUCKET_NAME_VARIABLE)?;
 
-            if let Err(upload_err) = upload_result {
-                upload_err.to_response()
-            } else {
-                created(serde_json::to_string_pretty(&SubmitResponse::new(key_id)).ok())
-            }
-        }
-        Err(error) => error,
+        SyncS3::new(region).and_then(|mut client| {
+            client.upload_to_s3(
+                &bucket,
+                format!("{}/problem.json", key_id).as_str(),
+                request.body.expect("empty body"),
+            )
+        })?;
+
+        created(serde_json::to_string_pretty(&SubmitResponse::new(key_id)).ok())
     };
 
     Ok(response)

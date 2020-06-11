@@ -1,18 +1,12 @@
-data "local_file" "vrp_api_exe" {
-  filename = "../target/release/bootstrap"
+data "local_file" "submit_problem" {
+  filename = "../artifacts/submit_problem.zip"
 }
 
-data "archive_file" "lambda_zip" {
-  type = "zip"
-  output_path = "../lambda.zip"
-  source_file = data.local_file.vrp_api_exe.filename
-}
+resource "aws_lambda_function" "submit_problem" {
+  filename = data.local_file.submit_problem.filename
+  source_code_hash = filebase64sha512(data.local_file.submit_problem.filename)
 
-resource "aws_lambda_function" "problem_submit" {
-  filename = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-
-  function_name = "problem_submit"
+  function_name = "submit_problem"
   handler = "ignored"
   role = aws_iam_role.lambda_exec.arn
   runtime = "provided"
@@ -41,7 +35,7 @@ EOF
 resource "aws_lambda_permission" "vrp_api_gw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.problem_submit.function_name
+  function_name = aws_lambda_function.submit_problem.function_name
   principal     = "apigateway.amazonaws.com"
 
   # The "/*/*" portion grants access from any method on any resource within the API Gateway REST API.
@@ -49,5 +43,5 @@ resource "aws_lambda_permission" "vrp_api_gw" {
 }
 
 output "base_url" {
-  value = aws_api_gateway_deployment.vrp_api_problem_submit.invoke_url
+  value = aws_api_gateway_deployment.vrp_api_submit_problem.invoke_url
 }

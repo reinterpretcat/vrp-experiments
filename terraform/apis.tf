@@ -16,19 +16,19 @@ resource "aws_api_gateway_method" "problem" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_integration" "problem_submit_lambda" {
+resource "aws_api_gateway_integration" "submit_problem_lambda" {
   rest_api_id = aws_api_gateway_rest_api.vrp_api.id
   resource_id = aws_api_gateway_method.problem.resource_id
   http_method = aws_api_gateway_method.problem.http_method
 
   integration_http_method = "POST"
   type = "AWS_PROXY"
-  uri = aws_lambda_function.problem_submit.invoke_arn
+  uri = aws_lambda_function.submit_problem.invoke_arn
 }
 
-resource "aws_api_gateway_deployment" "vrp_api_problem_submit" {
+resource "aws_api_gateway_deployment" "vrp_api_submit_problem" {
   depends_on = [
-    aws_api_gateway_integration.problem_submit_lambda,
+    aws_api_gateway_integration.submit_problem_lambda,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.vrp_api.id
