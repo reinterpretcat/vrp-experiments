@@ -5,7 +5,7 @@ variable "env_suffix_name" {
 
 variable "solver_data_bucket" {
   type = string
-  default = "vrp-solver-data-dev"
+  default = "vrp-solver-data"
 }
 
 variable "solver_data_bucket_expiration" {
