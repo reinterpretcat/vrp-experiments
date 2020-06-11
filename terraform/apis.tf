@@ -3,8 +3,7 @@ resource "aws_api_gateway_rest_api" "vrp_api" {
   description = "Vehicle Routing Problem Solver API"
 
   tags = {
-    description = "An API gateway to VRP solver"
-    environment = var.environment_name
+    environment = var.env_suffix_name
   }
 }
 
