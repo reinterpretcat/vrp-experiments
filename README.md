@@ -1,4 +1,13 @@
+# Prerequisites
 
+```shell script
+# openssl issue with rusoto
+sudo apt install openssl1.0 libssl1.0.0 libssl1.0-dev
+cargo clean
+OPENSSL_LIB_DIR="/usr/lib/x86_64-linux-gnu" 
+OPENSSL_INCLUDE_DIR="/usr/include/openssl" 
+cargo build
+```
 
 # Build lambda
 
