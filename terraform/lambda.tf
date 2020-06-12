@@ -69,7 +69,8 @@ EOF
 
 resource "aws_iam_policy_attachment" "vrp_lambda_policy" {
   name = "attachment"
-  roles = [aws_iam_role.solver_lambda_exec.name]
+  roles = [
+    aws_iam_role.solver_lambda_exec.name]
   policy_arn = aws_iam_policy.vrp_lambda_s3_logs.arn
 }
 
