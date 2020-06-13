@@ -1,4 +1,4 @@
-# s3
+### s3 ###
 variable "data_bucket" {
   description = "Name of the bucket used by solver where problem and solutions are stored. Default is `vrp-solver-data`"
   type = string
@@ -11,17 +11,24 @@ variable "data_bucket_expiration" {
   default = 3
 }
 
-# batch
+
+### batch ###
 variable "batch_job_queue_name" {
   description = "A name of batch job queue. Default is `vrp-solver-queue`"
   type = string
-  default = "vrp-solver-queue"
+  default = "vrp_solver_queue"
+}
+
+variable "batch_job_queue_state" {
+  description = "The state of the job queue. Default is `ENABLED`"
+  type = string
+  default = "DISABLED"
 }
 
 variable "batch_job_definition_name" {
   description = "A name of batch job definition. Default is `vrp-solver-job`"
   type = string
-  default = "vrp-solver-job"
+  default = "vrp_solver_job"
 }
 
 variable "batch_job_timeout" {

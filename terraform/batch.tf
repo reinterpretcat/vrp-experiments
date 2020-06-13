@@ -1,6 +1,8 @@
 resource "aws_batch_compute_environment" "vrp_solver_compute_environment" {
+  compute_environment_name = "vrp_solver_compute"
   service_role = aws_iam_role.vrp_solver_batch_compute_role.arn
   type = "MANAGED"
+
   depends_on = [
     aws_iam_role_policy_attachment.vrp_solver_batch_compute_role]
 
@@ -27,8 +29,9 @@ resource "aws_batch_compute_environment" "vrp_solver_compute_environment" {
 
 resource "aws_batch_job_queue" "vrp_solver_batch_job_queue" {
   name = var.batch_job_queue_name
-  state = "DISABLED"
+  state = var.batch_job_queue_state
   priority = 1
+
   compute_environments = [
     aws_batch_compute_environment.vrp_solver_compute_environment.arn]
 }
