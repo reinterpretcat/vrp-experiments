@@ -28,8 +28,8 @@ path = "src/lib.rs"
 
 [[bin]]
 name = "submit_problem"
-path = "src/submit/main.rs"
+path = "src/gateway/submit/main.rs"
 
 [[bin]]
 name = "poll_solution"
-path = "src/poll/main.rs"
+path = "src/gateway/poll/main.rs"
