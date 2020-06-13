@@ -25,6 +25,36 @@ resource "aws_batch_compute_environment" "vrp_solver_compute_environment" {
   }
 }
 
+resource "aws_batch_job_queue" "vrp_solver_batch_job_queue" {
+  name = var.batch_job_queue_name
+  state = "DISABLED"
+  priority = 1
+  compute_environments = [
+    aws_batch_compute_environment.vrp_solver_compute_environment.arn]
+}
+
+resource "aws_batch_job_definition" "vrp_solver_batch_job_definition" {
+  name = var.batch_job_definition_name
+  type = "container"
+
+  timeout {
+    attempt_duration_seconds = var.batch_job_timeout
+  }
+
+  container_properties = <<CONTAINER_PROPERTIES
+{
+    "command": ["ls", "-la"],
+    "image": "${var.batch_container_image}",
+    "memory": ${var.batch_container_memory},
+    "vcpus": ${var.batch_container_vcpus},
+    "environment": [
+        {"name": "BUCKET_NAME", "value": "${aws_s3_bucket.vrp_solver_data.bucket}"}
+    ]
+}
+CONTAINER_PROPERTIES
+
+}
+
 resource "aws_security_group" "vrp_solver_batch_compute" {
   name = "vrp_solver_batch_compute"
 
