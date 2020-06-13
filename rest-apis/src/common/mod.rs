@@ -9,3 +9,6 @@ pub use self::environment::*;
 
 mod s3_ops;
 pub use self::s3_ops::*;
+
+mod batch_ops;
+pub use self::batch_ops::*;

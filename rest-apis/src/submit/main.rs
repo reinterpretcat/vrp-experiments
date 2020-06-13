@@ -33,7 +33,9 @@ fn submit_handler(
     Ok(create_submit_response(request).unwrap_or_else(|err| err.to_response()))
 }
 
-fn create_submit_response(request: ApiGatewayProxyRequest) -> Result<ApiGatewayProxyResponse, AppError> {
+fn create_submit_response(
+    request: ApiGatewayProxyRequest,
+) -> Result<ApiGatewayProxyResponse, AppError> {
     let problem_result = request
         .body
         .as_ref()
@@ -45,7 +47,7 @@ fn create_submit_response(request: ApiGatewayProxyRequest) -> Result<ApiGatewayP
 
     let problem = match problem_result {
         Ok(problem) => problem,
-        Err(validation_error) => return Ok(validation_error)
+        Err(validation_error) => return Ok(validation_error),
     };
 
     let response = if let Err(errors) = ValidationContext::new(&problem, None).validate() {
