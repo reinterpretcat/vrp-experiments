@@ -1,8 +1,8 @@
 mod proxy_events;
 pub use self::proxy_events::*;
 
-mod api_events;
-pub use self::api_events::*;
+mod models;
+pub use self::models::*;
 
 mod environment;
 pub use self::environment::*;

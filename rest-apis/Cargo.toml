@@ -19,6 +19,7 @@ rusoto_batch = { version = "0.44.0", default_features = false, features=["rustls
 vrp-pragmatic = "1.2.2"
 
 uuid = { version = "0.8", features = ["v4"] }
+futures = "0.3.5"
 
 [lib]
 name = "rest_apis"

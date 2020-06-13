@@ -39,26 +39,26 @@ variable "batch_container_image" {
 variable "batch_container_memory" {
   description = "The hard limit (in MiB) of memory to present to the container. Default is `1024`"
   type = number
-  default = 1024
+  default = 2048
 }
 
 variable "batch_container_vcpus" {
   description = "Thee number of vCPUs reserved for the container. Default is `1`"
   type = number
-  default = 1
+  default = 2
 }
 
 variable batch_instance_types {
   description = "A list of batch instance types used to solve VRP. Default is `t2.micro`"
   type = list(string)
   default = [
-    "t2.micro"]
+    "c5.large"]
 }
 
 variable max_vcpus {
   description = "The maximum number of EC2 vCPUs that an environment can reach. Default: `1`"
   type = string
-  default = 1
+  default = 2
 }
 
 variable min_vcpus {

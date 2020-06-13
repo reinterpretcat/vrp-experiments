@@ -1,4 +1,5 @@
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
+use futures::try_join;
 use lambda_runtime::{error::HandlerError, lambda};
 use rest_apis::common::*;
 use serde::Serialize;
@@ -12,12 +13,12 @@ const PROBLEM_BUCKET_NAME_VARIABLE: &str = "PROBLEM_BUCKET_NAME";
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SubmitResponse {
-    pub solution_id: String,
+    pub id: String,
 }
 
 impl SubmitResponse {
     pub fn new(id: String) -> Self {
-        Self { solution_id: id }
+        Self { id }
     }
 }
 
@@ -54,18 +55,30 @@ fn create_submit_response(
         bad_request(serde_json::to_string_pretty(&errors).ok())
     } else {
         let region = get_region()?;
-        let key_id = Uuid::new_v4().to_string();
+        let submission_id = Uuid::new_v4().to_string();
         let bucket = get_environment_variable(&PROBLEM_BUCKET_NAME_VARIABLE)?;
 
-        SyncS3::new(region).and_then(|mut client| {
-            client.upload_to_s3(
-                &bucket,
-                format!("{}/problem.json", key_id).as_str(),
-                request.body.expect("empty body"),
-            )
+        get_async_runtime()?.block_on({
+            let submission_id = submission_id.clone();
+            async move {
+                let problem_upload = upload_to_s3(
+                    region.clone(),
+                    bucket.clone(),
+                    get_problem_path(submission_id.as_str()),
+                    request.body.expect("empty body"),
+                );
+                let state_upload = upload_to_s3(
+                    region,
+                    bucket,
+                    get_state_path(submission_id.as_str()),
+                    new_transition(State::Submitted).to_string(),
+                );
+
+                try_join!(problem_upload, state_upload)
+            }
         })?;
 
-        created(serde_json::to_string_pretty(&SubmitResponse::new(key_id)).ok())
+        created(serde_json::to_string_pretty(&SubmitResponse::new(submission_id)).ok())
     };
 
     Ok(response)

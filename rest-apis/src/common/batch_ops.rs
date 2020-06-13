@@ -1,5 +1,5 @@
 use crate::common::AppError;
-use rusoto_batch::{Batch, BatchClient, DescribeJobDefinitionsRequest, SubmitJobRequest};
+use rusoto_batch::{Batch, BatchClient, SubmitJobRequest};
 use rusoto_core::Region;
 use std::error::Error;
 

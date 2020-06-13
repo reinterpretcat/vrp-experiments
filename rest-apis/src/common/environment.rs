@@ -1,6 +1,7 @@
 use super::AppError;
 use rusoto_core::Region;
 use std::str::FromStr;
+use tokio::runtime::{Builder, Runtime};
 
 const AWS_REGION_VARIABLE: &str = "AWS_REGION";
 
@@ -20,4 +21,16 @@ pub fn get_region() -> Result<Region, AppError> {
             details: format!("{}", err),
         })
     })
+}
+
+pub fn get_async_runtime() -> Result<Runtime, AppError> {
+    Builder::new()
+        .basic_scheduler()
+        .enable_all()
+        .build()
+        .map_err(|err| AppError {
+            code: "".to_string(),
+            message: "cannot create async runtime".to_string(),
+            details: format!("{}", err),
+        })
 }
