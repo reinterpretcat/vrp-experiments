@@ -51,15 +51,6 @@ resource "aws_iam_policy_attachment" "vrp_solver_lambda_s3_policy" {
   policy_arn = aws_iam_policy.vrp_solver_lambda_s3_policy.arn
 }
 
-resource "aws_lambda_permission" "vrp_solver_lambda_permission" {
-  statement_id = "AllowAPIGatewayInvoke"
-  action = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.submit_problem_function.function_name
-  principal = "apigateway.amazonaws.com"
-
-  source_arn = "${aws_api_gateway_rest_api.vrp_solver_api.execution_arn}/*/*"
-}
-
 ### batch
 
 resource "aws_iam_role" "vrp_solver_batch_instance_role" {

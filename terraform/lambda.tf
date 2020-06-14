@@ -36,6 +36,25 @@ resource "aws_lambda_function" "trigger_solver_function" {
   environment {
     variables = {
       SOLVER_BUCKET_NAME = aws_s3_bucket.vrp_solver_data.bucket
+      JOB_QUEUE = aws_batch_job_queue.vrp_solver_batch_job_queue.name
+      JOB_DEFINITION = aws_batch_job_definition.vrp_solver_batch_job_definition.name
     }
   }
+}
+
+resource "aws_lambda_permission" "vrp_solver_allow_submit_from_gateway" {
+  statement_id = "AllowAPIGatewayInvoke"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.submit_problem_function.function_name
+  principal = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_api_gateway_rest_api.vrp_solver_api.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "vrp_solver_allow_trigger_from_s3" {
+  statement_id = "AllowExecutionFromS3Bucket"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.trigger_solver_function.arn
+  principal = "s3.amazonaws.com"
+  source_arn = aws_s3_bucket.vrp_solver_data.arn
 }
