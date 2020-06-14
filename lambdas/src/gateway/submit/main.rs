@@ -8,8 +8,6 @@ use uuid::Uuid;
 use vrp_pragmatic::format::problem::Problem;
 use vrp_pragmatic::validation::ValidationContext;
 
-const PROBLEM_BUCKET_NAME_VARIABLE: &str = "PROBLEM_BUCKET_NAME";
-
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SubmitResponse {
@@ -55,8 +53,8 @@ fn create_submit_response(
         bad_request(serde_json::to_string_pretty(&errors).ok())
     } else {
         let region = get_region()?;
+        let bucket = get_bucket()?;
         let submission_id = Uuid::new_v4().to_string();
-        let bucket = get_environment_variable(&PROBLEM_BUCKET_NAME_VARIABLE)?;
 
         get_async_runtime()?.block_on({
             let submission_id = submission_id.clone();

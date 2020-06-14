@@ -25,7 +25,6 @@ futures = "0.3.5"
 name = "rest_apis"
 path = "src/lib.rs"
 
-
 [[bin]]
 name = "submit_problem"
 path = "src/gateway/submit/main.rs"
@@ -33,3 +32,7 @@ path = "src/gateway/submit/main.rs"
 [[bin]]
 name = "poll_solution"
 path = "src/gateway/poll/main.rs"
+
+[[bin]]
+name = "trigger_solver"
+path = "src/triggers/batch/main.rs"

@@ -34,3 +34,7 @@ resource "aws_api_gateway_deployment" "submit_problem_api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.vrp_solver_api.id
   stage_name  = "test"
 }
+
+output "base_url" {
+  value = aws_api_gateway_deployment.submit_problem_api_deployment.invoke_url
+}

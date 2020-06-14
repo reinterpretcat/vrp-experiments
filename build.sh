@@ -8,6 +8,8 @@ cross build --release --target x86_64-unknown-linux-musl
 mkdir -p artifacts
 pushd artifacts
 
-cp ../target/x86_64-unknown-linux-musl/release/submit_problem ./bootstrap && zip submit_problem.zip bootstrap && rm bootstrap
+for i in {submit_problem,trigger_solver}; do
+  cp ../target/x86_64-unknown-linux-musl/release/$i ./bootstrap && zip $i.zip bootstrap && rm bootstrap
+done
 
 popd
