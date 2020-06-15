@@ -21,11 +21,15 @@ pub async fn upload_to_s3(
         })
         .await
         .map_err(|err| AppError {
-            message: format!("cannot upload to s3: '{}/{}'", bucket, key),
-            details: err
-                .source()
-                .map(|err_src| format!("{}", err_src))
-                .unwrap_or_else(|| "unknown".to_string()),
+            message: "cannot upload to s3".to_string(),
+            details: format!(
+                "bucket: '{}', key: '{}', more details: '{}'",
+                bucket,
+                key,
+                err.source()
+                    .map(|err_src| format!("{}", err_src))
+                    .unwrap_or_else(|| "unknown".to_string())
+            ),
         })
         .map(|_| ())
 }
@@ -38,7 +42,10 @@ pub async fn download_from_s3(
 ) -> Result<String, AppError> {
     let download_error = |err: String| AppError {
         message: "cannot download from s3".to_string(),
-        details: format!("bucket: '{}', key: '{}', info: '{}'", bucket, key, err),
+        details: format!(
+            "bucket: '{}', key: '{}', more details: '{}'",
+            bucket, key, err
+        ),
     };
 
     let object = S3Client::new(region)
