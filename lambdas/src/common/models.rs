@@ -1,6 +1,6 @@
 use crate::common::internal_server_error;
 use aws_lambda_events::event::apigw::ApiGatewayProxyResponse as Response;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use vrp_pragmatic::format::FormatError;
@@ -34,40 +34,55 @@ pub fn create_format_error(cause: &str) -> FormatError {
     }
 }
 
-pub fn get_problem_path(submission_id: &str) -> String {
+pub fn get_problem_key(submission_id: &str) -> String {
     format!("{}/problem.json", submission_id)
 }
 
-pub fn get_state_path(submission_id: &str) -> String {
+pub fn get_state_key(submission_id: &str) -> String {
     format!("{}/state.json", submission_id)
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub enum State {
     Submitted,
-    InProgress,
+    Runnable,
+    Running,
     Success,
     Failed,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Transition {
     pub timestamp: u64,
     pub state: State,
+    pub payload: Option<String>,
 }
 
-impl ToString for Transition {
-    fn to_string(&self) -> String {
-        serde_json::to_string_pretty(&self).expect("cannot serialize")
+impl Transition {
+    pub fn new(state: State, payload: Option<String>) -> Self {
+        Self {
+            timestamp: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("time machine?")
+                .as_secs(),
+            state,
+            payload,
+        }
     }
-}
 
-pub fn new_transition(state: State) -> Transition {
-    Transition {
-        timestamp: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("time machine?")
-            .as_secs(),
-        state,
+    pub fn to_state(self, old_state: &[Self]) -> Result<String, AppError> {
+        serde_json::to_string_pretty(&[&old_state[..], &[self]].concat()).map_err(|err| AppError {
+            code: "".to_string(),
+            message: "cannot serialize state".to_string(),
+            details: format!("error: '{}'", err),
+        })
+    }
+
+    pub fn from_state(state_str: &str) -> Result<Vec<Self>, AppError> {
+        serde_json::from_str::<Vec<Transition>>(state_str).map_err(|err| AppError {
+            code: "".to_string(),
+            message: "cannot deserialize state".to_string(),
+            details: format!("error: '{}', original data: '{}'", err, state_str),
+        })
     }
 }

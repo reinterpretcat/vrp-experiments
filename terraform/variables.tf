@@ -22,7 +22,7 @@ variable "batch_job_queue_name" {
 variable "batch_job_queue_state" {
   description = "The state of the job queue. Default is `ENABLED`"
   type = string
-  default = "DISABLED"
+  default = "ENABLED"
 }
 
 variable "batch_job_definition_name" {

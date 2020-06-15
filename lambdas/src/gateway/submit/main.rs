@@ -55,21 +55,23 @@ fn create_submit_response(
         let region = get_region()?;
         let bucket = get_bucket()?;
         let submission_id = Uuid::new_v4().to_string();
+        let transition = Transition::new(State::Submitted, None);
 
         get_async_runtime()?.block_on({
+            let state_data = transition.to_state(&[])?;
             let submission_id = submission_id.clone();
             async move {
                 let problem_upload = upload_to_s3(
                     region.clone(),
                     bucket.clone(),
-                    get_problem_path(submission_id.as_str()),
+                    get_problem_key(submission_id.as_str()),
                     request.body.expect("empty body"),
                 );
                 let state_upload = upload_to_s3(
                     region,
                     bucket,
-                    get_state_path(submission_id.as_str()),
-                    new_transition(State::Submitted).to_string(),
+                    get_state_key(submission_id.as_str()),
+                    state_data,
                 );
 
                 try_join!(problem_upload, state_upload)
