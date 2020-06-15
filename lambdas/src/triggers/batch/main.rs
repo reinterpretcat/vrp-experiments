@@ -32,7 +32,6 @@ fn create_batch_job(problem_path: String) -> Result<(), AppError> {
     let submission_id = path_parts
         .get(path_parts.len() - 2)
         .ok_or_else(|| AppError {
-            code: "".to_string(),
             message: "cannot extract submission_id".to_string(),
             details: format!("parsed string: '{}'", problem_path),
         })?
@@ -62,7 +61,6 @@ fn create_batch_job(problem_path: String) -> Result<(), AppError> {
                 Ok(())
             }
             _ => Err(AppError {
-                code: "".to_string(),
                 message: "unexpected submission state".to_string(),
                 details: format!("raw state data: '{}'", state_data),
             }),

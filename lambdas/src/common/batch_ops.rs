@@ -22,7 +22,6 @@ pub async fn submit_batch_job(
         })
         .await
         .map_err(|err| AppError {
-            code: "".to_string(),
             message: "cannot create batch job".to_string(),
             details: err
                 .source()

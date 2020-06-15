@@ -8,7 +8,6 @@ const BUCKET_NAME_VARIABLE: &str = "SOLVER_BUCKET_NAME";
 
 pub fn get_environment_variable(key: &str) -> Result<String, AppError> {
     std::env::var(key).map_err(|err| AppError {
-        code: "".to_string(),
         message: "cannot get environment variable".to_string(),
         details: format!("'{}', inner error: '{}'", key, err),
     })
@@ -17,7 +16,6 @@ pub fn get_environment_variable(key: &str) -> Result<String, AppError> {
 pub fn get_region() -> Result<Region, AppError> {
     get_environment_variable(AWS_REGION_VARIABLE).and_then(|region| {
         Region::from_str(&region).map_err(|err| AppError {
-            code: "".to_string(),
             message: "cannot get aws region".to_string(),
             details: format!("{}", err),
         })
@@ -34,7 +32,6 @@ pub fn get_async_runtime() -> Result<Runtime, AppError> {
         .enable_all()
         .build()
         .map_err(|err| AppError {
-            code: "".to_string(),
             message: "cannot create async runtime".to_string(),
             details: format!("{}", err),
         })

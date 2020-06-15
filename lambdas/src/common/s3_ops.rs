@@ -20,7 +20,6 @@ pub async fn upload_to_s3(
         })
         .await
         .map_err(|err| AppError {
-            code: "".to_string(),
             message: format!("cannot upload to s3: '{}/{}'", bucket, key),
             details: err
                 .source()
@@ -44,7 +43,6 @@ pub async fn download_from_s3(
         })
         .await
         .map_err(|err| AppError {
-            code: "".to_string(),
             message: format!("cannot download from s3: '{}/{}'", bucket, key),
             details: err
                 .source()
@@ -67,7 +65,6 @@ pub async fn download_from_s3(
                 .map_err(|err| format!("cannot convert utf8 string: '{}'", err))
         })
         .map_err(|details| AppError {
-            code: "".to_string(),
             message: "cannot download s3 object".to_string(),
             details: format!("s3 object key '{}', error: {}", key, details),
         })

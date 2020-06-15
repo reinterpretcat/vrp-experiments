@@ -7,7 +7,6 @@ use vrp_pragmatic::format::FormatError;
 
 #[derive(Debug, Serialize)]
 pub struct AppError {
-    pub code: String,
     pub message: String,
     pub details: String,
 }
@@ -72,7 +71,6 @@ impl Transition {
 
     pub fn to_state(self, old_state: &[Self]) -> Result<String, AppError> {
         serde_json::to_string_pretty(&[&old_state[..], &[self]].concat()).map_err(|err| AppError {
-            code: "".to_string(),
             message: "cannot serialize state".to_string(),
             details: format!("error: '{}'", err),
         })
@@ -80,7 +78,6 @@ impl Transition {
 
     pub fn from_state(state_str: &str) -> Result<Vec<Self>, AppError> {
         serde_json::from_str::<Vec<Transition>>(state_str).map_err(|err| AppError {
-            code: "".to_string(),
             message: "cannot deserialize state".to_string(),
             details: format!("error: '{}', original data: '{}'", err, state_str),
         })
