@@ -8,4 +8,6 @@
 
 .terraform
 *.tfstate*
+*.tfvars*
+
 *.zip

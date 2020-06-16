@@ -13,6 +13,16 @@ variable "data_bucket_expiration" {
 
 
 ### batch ###
+variable "vpc_subnet_ids" {
+  description = "A list of VPC subnets to use with batch compute environment."
+  type = list(string)
+}
+
+variable "vpc_security_group_ids" {
+  description = "A list of VPC security groups to use with batch compute environment."
+  type = list(string)
+}
+
 variable "batch_job_queue_name" {
   description = "A name of batch job queue. Default is `vrp-solver-queue`"
   type = string
@@ -72,16 +82,4 @@ variable min_vcpus {
   description = "The minimum number of EC2 vCPUs that an environment should maintain. Default: `0`"
   type = string
   default = 0
-}
-
-variable "batch_vpc_cidr_block" {
-  description = "A CIDR block to be used for batch compute environment vpc. Default: `10.1.0.0/16`"
-  type = string
-  default = "10.1.0.0/16"
-}
-
-variable "batch_vpc_subnet_cidr_block" {
-  description = "A CIDR block to be used for batch compute environment subnet. Default: `10.1.1.0/24`"
-  type = string
-  default = "10.1.1.0/24"
 }
