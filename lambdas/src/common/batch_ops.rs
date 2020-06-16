@@ -1,8 +1,8 @@
-use crate::common::AppError;
 use rusoto_batch::{Batch, BatchClient, SubmitJobRequest};
 use rusoto_core::Region;
 use std::collections::HashMap;
 use std::error::Error;
+use common::models::AppError;
 
 /** Submits batch job. */
 pub async fn submit_batch_job(

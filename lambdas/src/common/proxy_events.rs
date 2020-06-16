@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "../../tests/unit/common/proxy_events_test.rs"]
+mod proxy_events_test;
+
 use aws_lambda_events::event::apigw::ApiGatewayProxyResponse as Response;
 
 fn default_response() -> Response {

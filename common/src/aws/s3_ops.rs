@@ -1,9 +1,9 @@
-use crate::common::AppError;
 use bytes::BytesMut;
 use futures::TryStreamExt;
 use rusoto_core::Region;
 use rusoto_s3::{GetObjectRequest, PutObjectRequest, S3Client, S3};
 use std::error::Error;
+use crate::models::AppError;
 
 /// Uploads string data to s3 bucket using parameters specified.
 pub async fn upload_to_s3(

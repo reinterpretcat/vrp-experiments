@@ -1,7 +1,6 @@
-use super::AppError;
 use rusoto_core::Region;
+use crate::models::AppError;
 use std::str::FromStr;
-use tokio::runtime::{Builder, Runtime};
 
 const AWS_REGION_VARIABLE: &str = "AWS_REGION";
 const BUCKET_NAME_VARIABLE: &str = "SOLVER_BUCKET_NAME";
@@ -24,15 +23,4 @@ pub fn get_region() -> Result<Region, AppError> {
 
 pub fn get_bucket() -> Result<String, AppError> {
     get_environment_variable(BUCKET_NAME_VARIABLE)
-}
-
-pub fn get_async_runtime() -> Result<Runtime, AppError> {
-    Builder::new()
-        .basic_scheduler()
-        .enable_all()
-        .build()
-        .map_err(|err| AppError {
-            message: "cannot create async runtime".to_string(),
-            details: format!("{}", err),
-        })
 }
