@@ -20,9 +20,9 @@ EOF
 
 }
 
-resource "aws_iam_policy" "vrp_solver_lambda_s3_policy" {
-  name = "vrp_solver_lambda_s3_policy"
-  description = "A policy to access s3 bucket and logs"
+resource "aws_iam_policy" "vrp_solver_lambda_policy" {
+  name = "vrp_solver_lambda_policy"
+  description = "A policy to access logs, s3, and batch"
 
   policy = <<EOF
 {
@@ -37,6 +37,11 @@ resource "aws_iam_policy" "vrp_solver_lambda_s3_policy" {
       "Effect": "Allow",
       "Action": ["s3:*"],
       "Resource": "arn:aws:s3:::*"
+    },
+    {
+       "Effect": "Allow",
+       "Action": ["batch:SubmitJob"],
+       "Resource": "*"
     }
   ]
 }
@@ -44,11 +49,11 @@ EOF
 
 }
 
-resource "aws_iam_policy_attachment" "vrp_solver_lambda_s3_policy" {
-  name = "vrp_solver_lambda_s3_policy"
+resource "aws_iam_policy_attachment" "vrp_solver_lambda_policy" {
+  name = "vrp_solver_lambda_policy"
   roles = [
     aws_iam_role.vrp_solver_lambda_role.name]
-  policy_arn = aws_iam_policy.vrp_solver_lambda_s3_policy.arn
+  policy_arn = aws_iam_policy.vrp_solver_lambda_policy.arn
 }
 
 ### batch

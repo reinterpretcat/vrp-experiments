@@ -79,7 +79,7 @@ async fn submit_batch_job_within_state(
 
     println!("created batch job with id '{}'", batch_job_id);
 
-    let new_state_data = Transition::new(State::Submitted, Some(submission_id.clone()))
+    let new_state_data = Transition::new(State::Runnable, Some(submission_id.clone()))
         .to_state(state.as_slice())?;
 
     upload_to_s3(region, bucket, state_key, new_state_data)
