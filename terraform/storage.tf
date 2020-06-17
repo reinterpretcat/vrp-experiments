@@ -7,6 +7,10 @@ resource "aws_s3_bucket" "vrp_solver_data" {
     expiration {
       days = var.data_bucket_expiration
     }
+
+    noncurrent_version_expiration {
+      days = var.data_bucket_expiration
+    }
   }
 
   tags = {
