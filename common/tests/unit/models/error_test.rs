@@ -4,7 +4,7 @@ use super::*;
 fn can_format_app_error() {
     let error = AppError {
         message: "some msg".to_string(),
-        details: "some detail".to_string()
+        details: "some detail".to_string(),
     };
 
     let result = format!("{}", error);

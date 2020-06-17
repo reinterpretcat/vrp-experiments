@@ -4,8 +4,8 @@ pub use self::environment::*;
 mod variables;
 pub use self::variables::*;
 
-use tokio::runtime::{Builder, Runtime};
 use crate::models::AppError;
+use tokio::runtime::{Builder, Runtime};
 
 /// Creates asynchronous runtime.
 pub fn get_async_runtime() -> Result<Runtime, AppError> {

@@ -1,13 +1,13 @@
 use aws_lambda_events::event::s3::S3Event;
+use common::aws::{download_from_s3, upload_to_s3};
+use common::models::{AppError, State, Transition};
+use common::runtime::*;
 use futures::TryFutureExt;
 use lambda_runtime::{error::HandlerError, lambda};
+use lambdas::common::submit_batch_job;
 use rusoto_core::Region;
 use std::error::Error;
 use std::iter::once;
-use common::models::{AppError, Transition, State};
-use common::runtime::*;
-use lambdas::common::submit_batch_job;
-use common::aws::{upload_to_s3, download_from_s3};
 
 fn main() -> Result<(), Box<dyn Error>> {
     lambda!(batch_handler);
@@ -82,8 +82,8 @@ async fn submit_batch_job_within_state(
 
     println!("created batch job with id '{}'", batch_job_id);
 
-    let new_state_data = Transition::new(State::Runnable, Some(submission_id.clone()))
-        .to_state(state.as_slice())?;
+    let new_state_data =
+        Transition::new(State::Runnable, Some(submission_id.clone())).to_state(state.as_slice())?;
 
     upload_to_s3(region, bucket, state_key, new_state_data)
         .map_err(|err| {
@@ -105,7 +105,7 @@ async fn push_batch_job(submission_id: &str) -> Result<String, AppError> {
     let job_definition = get_environment_variable("JOB_DEFINITION")?;
     let job_name = submission_id.to_string();
     let job_parameters =
-        Some(once(("submission_id".to_string(), submission_id.to_string())).collect());
+        Some(once(("submission-id".to_string(), submission_id.to_string())).collect());
 
     submit_batch_job(region, job_queue, job_definition, job_name, job_parameters).await
 }

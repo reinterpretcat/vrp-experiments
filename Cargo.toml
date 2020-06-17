@@ -3,6 +3,7 @@
 members = [
     "common",
     "lambdas",
+    "solver",
 ]
 
 [profile.release]

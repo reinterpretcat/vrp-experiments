@@ -13,6 +13,12 @@ pub struct AppError {
 
 impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string_pretty(&self).ok().unwrap_or_else(|| "{}".to_string()))
+        write!(
+            f,
+            "{}",
+            serde_json::to_string_pretty(&self)
+                .ok()
+                .unwrap_or_else(|| "{}".to_string())
+        )
     }
 }

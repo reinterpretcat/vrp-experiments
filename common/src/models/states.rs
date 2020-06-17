@@ -1,6 +1,6 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use crate::models::AppError;
 use serde::{Deserialize, Serialize};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub enum State {

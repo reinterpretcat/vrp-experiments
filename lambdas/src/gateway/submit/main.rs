@@ -1,15 +1,15 @@
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
+use common::aws::upload_to_s3;
+use common::models::{AppError, State, Transition};
+use common::runtime::*;
 use futures::try_join;
 use lambda_runtime::{error::HandlerError, lambda};
+use lambdas::common::*;
 use serde::Serialize;
 use std::error::Error;
 use uuid::Uuid;
 use vrp_pragmatic::format::problem::Problem;
 use vrp_pragmatic::validation::ValidationContext;
-use common::models::{AppError, Transition, State};
-use common::runtime::*;
-use common::aws::upload_to_s3;
-use lambdas::common::*;
 
 #[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -32,7 +32,8 @@ fn submit_handler(
     request: ApiGatewayProxyRequest,
     _: lambda_runtime::Context,
 ) -> Result<ApiGatewayProxyResponse, HandlerError> {
-    Ok(create_submit_response(request).unwrap_or_else(|err|internal_server_error(Some(err.to_string()))))
+    Ok(create_submit_response(request)
+        .unwrap_or_else(|err| internal_server_error(Some(err.to_string()))))
 }
 
 fn create_submit_response(

@@ -1,4 +1,3 @@
-
 pub fn get_problem_key(submission_id: &str) -> String {
     format!("{}/problem.json", submission_id)
 }

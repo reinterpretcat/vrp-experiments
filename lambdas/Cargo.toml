@@ -35,9 +35,3 @@ path = "src/gateway/poll/main.rs"
 [[bin]]
 name = "trigger_solver"
 path = "src/triggers/batch/main.rs"
-
-[profile.release]
-lto = true
-codegen-units = 1
-opt-level = 'z'
-panic = 'abort'

@@ -1,5 +1,5 @@
-use rusoto_core::Region;
 use crate::models::AppError;
+use rusoto_core::Region;
 use std::str::FromStr;
 
 const AWS_REGION_VARIABLE: &str = "AWS_REGION";
