@@ -48,9 +48,8 @@ variable "batch_job_timeout" {
 }
 
 variable "batch_container_image" {
-  description = "A container image to run VRP solver. Default is `busybox`"
+  description = "A container image to run VRP solver"
   type = string
-  default = "busybox"
 }
 
 variable "batch_container_memory" {

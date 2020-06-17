@@ -44,14 +44,14 @@ resource "aws_batch_job_definition" "vrp_solver_batch_job_definition" {
   container_properties = <<CONTAINER_PROPERTIES
 {
     "command": ["/usr/src/solver",
-      "Ref::submission-id"
+        "Ref::submission-id"
     ],
     "image": "${var.batch_container_image}",
     "memory": ${var.batch_container_memory},
     "vcpus": ${var.batch_container_vcpus},
     "environment": [
         {"name": "AWS_REGION", "value": "${data.aws_region.current.name}"},
-        {"name": "BUCKET_NAME", "value": "${aws_s3_bucket.vrp_solver_data.bucket}"},
+        {"name": "BUCKET_NAME", "value": "${aws_s3_bucket.vrp_solver_data.bucket}"}
     ]
 }
 CONTAINER_PROPERTIES
