@@ -2,6 +2,10 @@
 
 set -eux
 
+root_dir="$(git rev-parse --show-toplevel)"
+
+pushd "$root_dir"
+
 # cross build rust code for aws linux
 cross build --release --target x86_64-unknown-linux-musl
 
@@ -16,4 +20,6 @@ done
 
 cp $release_artifacts/solver .
 
-popd
+popd # artifacts
+
+popd # root_dr

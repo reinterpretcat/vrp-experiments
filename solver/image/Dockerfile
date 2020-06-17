@@ -1,3 +1,7 @@
 FROM busybox
 
-COPY ../../artifacts/solver /usr/src/
+COPY solver /usr/local/bin/
+
+USER nobody
+
+ENTRYPOINT ["/usr/local/bin/solver"]
