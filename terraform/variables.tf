@@ -77,6 +77,12 @@ variable max_vcpus {
   default = 2
 }
 
+variable "desired_vcpus" {
+  description = "Desired amount of EC2 vCPUs. Default: `2`"
+  type = string
+  default = 2
+}
+
 variable min_vcpus {
   description = "The minimum number of EC2 vCPUs that an environment should maintain. Default: `0`"
   type = string

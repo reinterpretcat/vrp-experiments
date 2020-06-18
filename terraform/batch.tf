@@ -12,6 +12,7 @@ resource "aws_batch_compute_environment" "vrp_solver_compute_environment" {
 
     max_vcpus = var.max_vcpus
     min_vcpus = var.min_vcpus
+    desired_vcpus = var.desired_vcpus
 
     type = "EC2"
 
@@ -51,7 +52,7 @@ resource "aws_batch_job_definition" "vrp_solver_batch_job_definition" {
     "vcpus": ${var.batch_container_vcpus},
     "environment": [
         {"name": "AWS_REGION", "value": "${data.aws_region.current.name}"},
-        {"name": "BUCKET_NAME", "value": "${aws_s3_bucket.vrp_solver_data.bucket}"}
+        {"name": "SOLVER_BUCKET_NAME", "value": "${aws_s3_bucket.vrp_solver_data.bucket}"}
     ]
 }
 CONTAINER_PROPERTIES
