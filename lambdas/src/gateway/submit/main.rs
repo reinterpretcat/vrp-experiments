@@ -1,6 +1,6 @@
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use common::aws::upload_to_s3;
-use common::models::{AppError, State};
+use common::models::{AppError, Context, State};
 use common::runtime::*;
 use futures::try_join;
 use lambda_runtime::{error::HandlerError, lambda};
@@ -56,30 +56,24 @@ fn create_submit_response(
     let response = if let Err(errors) = ValidationContext::new(&problem, None).validate() {
         bad_request(serde_json::to_string_pretty(&errors).ok())
     } else {
-        let region = get_region()?;
-        let bucket = get_bucket()?;
-        let submission_id = Uuid::new_v4().to_string();
+        let ctx = Context::new(Uuid::new_v4().to_string())?;
 
         get_async_runtime()?.block_on({
             let state = State::submitted(None);
-            let submission_id = submission_id.clone();
+            let ctx = ctx.clone();
             async move {
-                let problem_key = get_problem_key(submission_id.as_str());
+                let problem_key = get_problem_key(ctx.submit_id.as_str());
 
-                let state_upload = save_state(&region, &bucket, submission_id.as_str(), &state);
+                let state_upload = save_state(&ctx, &state);
 
-                let problem_upload = upload_to_s3(
-                    &region,
-                    &bucket,
-                    &problem_key,
-                    request.body.expect("empty body"),
-                );
+                let problem_upload =
+                    upload_to_s3(&ctx, &problem_key, request.body.expect("empty body"));
 
                 try_join!(problem_upload, state_upload)
             }
         })?;
 
-        created(serde_json::to_string_pretty(&SubmitResponse::new(submission_id)).ok())
+        created(serde_json::to_string_pretty(&SubmitResponse::new(ctx.submit_id)).ok())
     };
 
     Ok(response)

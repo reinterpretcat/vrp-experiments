@@ -1,5 +1,25 @@
+use crate::models::AppError;
+use crate::runtime::{get_bucket, get_region};
+use rusoto_core::Region;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+#[derive(Clone, Debug)]
+pub struct Context {
+    pub region: Region,
+    pub bucket: String,
+    pub submit_id: String,
+}
+
+impl Context {
+    pub fn new(submit_id: String) -> Result<Self, AppError> {
+        Ok(Self {
+            region: get_region()?,
+            bucket: get_bucket()?,
+            submit_id,
+        })
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub enum Progress {

@@ -1,18 +1,17 @@
-use common::aws::Region;
-use common::models::AppError;
+use common::models::{AppError, Context};
 use rusoto_batch::{Batch, BatchClient, SubmitJobRequest};
 use std::collections::HashMap;
 use std::error::Error;
 
 /** Submits batch job. */
 pub async fn submit_batch_job(
-    region: Region,
+    ctx: &Context,
     job_queue: String,
     job_definition: String,
     job_name: String,
     parameters: Option<HashMap<String, String>>,
 ) -> Result<String, AppError> {
-    BatchClient::new(region)
+    BatchClient::new(ctx.region.clone())
         .submit_job(SubmitJobRequest {
             job_queue,
             job_definition,
