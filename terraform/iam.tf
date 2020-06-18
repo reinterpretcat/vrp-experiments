@@ -22,17 +22,12 @@ EOF
 
 resource "aws_iam_policy" "vrp_solver_lambda_policy" {
   name = "vrp_solver_lambda_policy"
-  description = "A policy to access logs, s3, and batch"
+  description = "A policy to access s3 and batch"
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": ["logs:*"],
-      "Resource": "arn:aws:logs:*:*:*"
-    },
     {
       "Effect": "Allow",
       "Action": ["s3:*"],
@@ -63,23 +58,28 @@ resource "aws_iam_role" "vrp_solver_batch_instance_role" {
 
   assume_role_policy = <<EOF
 {
-    "Version": "2012-10-17",
-    "Statement": [
+  "Version": "2012-10-17",
+  "Statement": [
     {
-        "Action": "sts:AssumeRole",
-        "Effect": "Allow",
-        "Principal": {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
         "Service": "ec2.amazonaws.com"
-        }
+      }
     }
-    ]
+  ]
 }
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "vrp_solver_batch_instance_role" {
+resource "aws_iam_role_policy_attachment" "vrp_solver_batch_instance_ec2_role" {
   role = aws_iam_role.vrp_solver_batch_instance_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_role_policy_attachment" "vrp_solver_batch_instance_s3_access" {
+  role = aws_iam_role.vrp_solver_batch_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
 resource "aws_iam_instance_profile" "vrp_solver_batch_instance_profile" {
@@ -92,16 +92,16 @@ resource "aws_iam_role" "vrp_solver_batch_compute_role" {
 
   assume_role_policy = <<EOF
 {
-    "Version": "2012-10-17",
-    "Statement": [
+  "Version": "2012-10-17",
+  "Statement": [
     {
-        "Action": "sts:AssumeRole",
-        "Effect": "Allow",
-        "Principal": {
+      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
+      "Principal": {
         "Service": "batch.amazonaws.com"
-        }
+      }
     }
-    ]
+  ]
 }
 EOF
 }

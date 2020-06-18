@@ -72,13 +72,7 @@ variable batch_instance_types {
 }
 
 variable max_vcpus {
-  description = "The maximum number of EC2 vCPUs that an environment can reach. Default: `1`"
-  type = string
-  default = 2
-}
-
-variable "desired_vcpus" {
-  description = "Desired amount of EC2 vCPUs. Default: `2`"
+  description = "The maximum number of EC2 vCPUs that an environment can reach. Default: `2`"
   type = string
   default = 2
 }

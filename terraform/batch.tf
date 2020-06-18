@@ -12,7 +12,6 @@ resource "aws_batch_compute_environment" "vrp_solver_compute_environment" {
 
     max_vcpus = var.max_vcpus
     min_vcpus = var.min_vcpus
-    desired_vcpus = var.desired_vcpus
 
     type = "EC2"
 
@@ -22,6 +21,10 @@ resource "aws_batch_compute_environment" "vrp_solver_compute_environment" {
     tags = {
       description = "A Vehicle Routing Problem solver instance"
     }
+  }
+
+  lifecycle {
+    ignore_changes = [compute_resources.0.desired_vcpus]
   }
 }
 
