@@ -10,6 +10,10 @@ pub fn get_state_key(submission_id: &str) -> String {
     format!("{}/state.json", submission_id)
 }
 
+pub fn get_solution_key(submission_id: &str) -> String {
+    format!("{}/solution.json", submission_id)
+}
+
 pub async fn get_state(
     region: &Region,
     bucket: &str,

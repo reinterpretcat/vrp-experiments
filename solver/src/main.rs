@@ -1,9 +1,12 @@
-use common::aws::{download_from_s3, Region};
+use common::aws::{download_from_s3, upload_to_s3, Region};
 use common::models::{AppError, Progress, State, Transition};
 use common::runtime::*;
+use std::io::BufWriter;
+use std::sync::Arc;
 use vrp_pragmatic::core::models::Problem;
+use vrp_pragmatic::core::solver::Builder;
 use vrp_pragmatic::format::problem::PragmaticProblem;
-use vrp_pragmatic::format::solution::Solution;
+use vrp_pragmatic::format::solution::PragmaticSolution;
 use vrp_pragmatic::format::FormatError;
 
 fn main() -> Result<(), String> {
@@ -27,6 +30,7 @@ async fn process_problem() -> Result<(), AppError> {
     let state = get_state(&region, &bucket, &submission_id).await?;
     match state.progress() {
         Some(progress) if progress == Progress::Runnable => {
+            let problem = get_problem(&region, &bucket, &submission_id).await?;
             let state = apply_state_change(
                 &region,
                 &bucket,
@@ -36,10 +40,15 @@ async fn process_problem() -> Result<(), AppError> {
             )
             .await?;
 
-            let problem = get_problem(&region, &bucket, &submission_id).await?;
             let solution = solve_problem(problem)?;
 
-            upload_solution(solution).await?;
+            upload_to_s3(
+                &region,
+                &bucket,
+                &get_solution_key(&submission_id),
+                solution,
+            )
+            .await?;
             apply_state_change(
                 &region,
                 &bucket,
@@ -55,13 +64,13 @@ async fn process_problem() -> Result<(), AppError> {
             return Err(AppError {
                 message: "unexpected state".to_string(),
                 details: format!("expected Runnable, got: '{:?}'", progress),
-            })
+            });
         }
         _ => {
             return Err(AppError {
                 message: "unexpected state".to_string(),
                 details: "unknown state progress".to_string(),
-            })
+            });
         }
     }
 }
@@ -101,10 +110,26 @@ async fn get_problem(
         })
 }
 
-fn solve_problem(_problem: Problem) -> Result<Solution, AppError> {
-    unimplemented!()
-}
+fn solve_problem(problem: Problem) -> Result<String, AppError> {
+    let problem = Arc::new(problem);
+    let (solution, cost, _) = Builder::new(problem.clone())
+        .build()
+        .and_then(|solver| solver.solve())
+        .map_err(|err| AppError {
+            message: "cannot solve problem".to_string(),
+            details: err,
+        })?;
 
-async fn upload_solution(_solution: Solution) -> Result<Problem, AppError> {
-    unimplemented!()
+    println!("found solution with cost: {}", cost);
+
+    let mut buffer = String::new();
+    let writer = unsafe { BufWriter::new(buffer.as_mut_vec()) };
+    solution
+        .write_pragmatic_json(&problem, writer)
+        .map_err(|err| AppError {
+            message: "cannot write solution".to_string(),
+            details: err,
+        })?;
+
+    Ok(buffer)
 }
