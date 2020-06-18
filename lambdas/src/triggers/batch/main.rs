@@ -1,5 +1,5 @@
 use aws_lambda_events::event::s3::S3Event;
-use common::models::{AppError, Context, Progress, State};
+use common::models::{AppError, Context, Progress, State, Transition};
 use common::runtime::*;
 use lambda_runtime::{error::HandlerError, lambda};
 use lambdas::common::submit_batch_job;
@@ -44,7 +44,7 @@ fn create_batch_job(problem_path: String) -> Result<(), AppError> {
 
         match state.progress() {
             Some(progress) if progress == Progress::Submitted => {
-                submit_batch_job_within_state(&ctx, &state).await
+                submit_batch_job_within_state(&ctx, state).await
             }
             Some(progress) if progress == Progress::Runnable => {
                 println!(
@@ -61,7 +61,7 @@ fn create_batch_job(problem_path: String) -> Result<(), AppError> {
     })
 }
 
-async fn submit_batch_job_within_state(ctx: &Context, state: &State) -> Result<(), AppError> {
+async fn submit_batch_job_within_state(ctx: &Context, state: State) -> Result<(), AppError> {
     let job_queue = get_environment_variable("JOB_QUEUE")?;
     let job_definition = get_environment_variable("JOB_DEFINITION")?;
     let job_name = ctx.submit_id.clone();
@@ -71,7 +71,9 @@ async fn submit_batch_job_within_state(ctx: &Context, state: &State) -> Result<(
         submit_batch_job(ctx, job_queue, job_definition, job_name, job_parameters).await?;
     println!("created batch job with id '{}'", batch_job_id);
 
-    save_state(ctx, state).await.map_err(|err| {
+    let state = state.transition(Transition::new(Progress::Runnable, Some(batch_job_id)));
+
+    save_state(ctx, &state).await.map_err(|err| {
         eprintln!(
             "batch job created but state change failed, {}",
             ctx.submit_id

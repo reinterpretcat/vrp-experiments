@@ -1,4 +1,4 @@
-FROM busybox
+FROM amazonlinux:latest
 
 COPY solver /usr/local/bin/
 
