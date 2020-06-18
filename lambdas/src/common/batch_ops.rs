@@ -1,6 +1,6 @@
+use common::aws::Region;
 use common::models::AppError;
 use rusoto_batch::{Batch, BatchClient, SubmitJobRequest};
-use rusoto_core::Region;
 use std::collections::HashMap;
 use std::error::Error;
 

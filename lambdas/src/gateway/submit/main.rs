@@ -1,6 +1,6 @@
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use common::aws::upload_to_s3;
-use common::models::{AppError, State, Transition};
+use common::models::{AppError, State};
 use common::runtime::*;
 use futures::try_join;
 use lambda_runtime::{error::HandlerError, lambda};
@@ -59,23 +59,20 @@ fn create_submit_response(
         let region = get_region()?;
         let bucket = get_bucket()?;
         let submission_id = Uuid::new_v4().to_string();
-        let transition = Transition::new(State::Submitted, None);
 
         get_async_runtime()?.block_on({
-            let state_data = transition.to_state(&[])?;
+            let state = State::submitted(None);
             let submission_id = submission_id.clone();
             async move {
+                let problem_key = get_problem_key(submission_id.as_str());
+
+                let state_upload = save_state(&region, &bucket, submission_id.as_str(), &state);
+
                 let problem_upload = upload_to_s3(
-                    region.clone(),
-                    bucket.clone(),
-                    get_problem_key(submission_id.as_str()),
+                    &region,
+                    &bucket,
+                    &problem_key,
                     request.body.expect("empty body"),
-                );
-                let state_upload = upload_to_s3(
-                    region,
-                    bucket,
-                    get_state_key(submission_id.as_str()),
-                    state_data,
                 );
 
                 try_join!(problem_upload, state_upload)

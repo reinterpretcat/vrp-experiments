@@ -1,11 +1,110 @@
-fn main() {
-    println!("Environment variables:");
-    std::env::vars().for_each(|(name, value)| {
-        println!("{}={}", name, value);
-    });
+use common::aws::{download_from_s3, Region};
+use common::models::{AppError, Progress, State, Transition};
+use common::runtime::*;
+use vrp_pragmatic::core::models::Problem;
+use vrp_pragmatic::format::problem::PragmaticProblem;
+use vrp_pragmatic::format::solution::Solution;
+use vrp_pragmatic::format::FormatError;
 
-    println!("Command line arguments:");
-    std::env::args().for_each(|arg| {
-        println!("{}", arg);
-    });
+fn main() -> Result<(), String> {
+    get_async_runtime()
+        .and_then(|mut runtime| runtime.block_on(async move { process_problem().await }))
+        .map_err(|err| {
+            let err_str = err.to_string();
+            eprintln!("cannot solve problem: '{}'", err.to_string());
+            err_str
+        })
+}
+
+async fn process_problem() -> Result<(), AppError> {
+    println!("fetching job parameters..");
+    let region = get_region()?;
+    let bucket = get_bucket()?;
+    let submission_id = get_submission_id()?;
+
+    println!("submission id is '{}'", submission_id);
+
+    let state = get_state(&region, &bucket, &submission_id).await?;
+    match state.progress() {
+        Some(progress) if progress == Progress::Runnable => {
+            let state = apply_state_change(
+                &region,
+                &bucket,
+                &submission_id,
+                state,
+                Transition::new(Progress::Running, None),
+            )
+            .await?;
+
+            let problem = get_problem(&region, &bucket, &submission_id).await?;
+            let solution = solve_problem(problem)?;
+
+            upload_solution(solution).await?;
+            apply_state_change(
+                &region,
+                &bucket,
+                &submission_id,
+                state,
+                Transition::new(Progress::Success, None),
+            )
+            .await?;
+
+            Ok(())
+        }
+        Some(progress) => {
+            return Err(AppError {
+                message: "unexpected state".to_string(),
+                details: format!("expected Runnable, got: '{:?}'", progress),
+            })
+        }
+        _ => {
+            return Err(AppError {
+                message: "unexpected state".to_string(),
+                details: "unknown state progress".to_string(),
+            })
+        }
+    }
+}
+
+fn get_submission_id() -> Result<String, AppError> {
+    std::env::args().last().ok_or_else(|| AppError {
+        message: "cannot get submission id".to_string(),
+        details: "".to_string(),
+    })
+}
+
+async fn apply_state_change(
+    region: &Region,
+    bucket: &str,
+    submission_id: &str,
+    state: State,
+    transition: Transition,
+) -> Result<State, AppError> {
+    let new_state = state.transition(transition);
+    save_state(region, bucket, &submission_id, &new_state).await?;
+
+    Ok(new_state)
+}
+
+async fn get_problem(
+    region: &Region,
+    bucket: &str,
+    submission_id: &str,
+) -> Result<Problem, AppError> {
+    download_from_s3(&region, &bucket, &submission_id)
+        .await
+        .and_then(|content| {
+            content.read_pragmatic().map_err(|errors| AppError {
+                message: "cannot read problem".to_string(),
+                details: format!("{}", FormatError::format_many(errors.as_slice(), ",")),
+            })
+        })
+}
+
+fn solve_problem(_problem: Problem) -> Result<Solution, AppError> {
+    unimplemented!()
+}
+
+async fn upload_solution(_solution: Solution) -> Result<Problem, AppError> {
+    unimplemented!()
 }

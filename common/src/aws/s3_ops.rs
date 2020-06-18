@@ -7,12 +7,12 @@ use std::error::Error;
 
 /// Uploads string data to s3 bucket using parameters specified.
 pub async fn upload_to_s3(
-    region: Region,
-    bucket: String,
-    key: String,
+    region: &Region,
+    bucket: &str,
+    key: &str,
     data: String,
 ) -> Result<(), AppError> {
-    S3Client::new(region)
+    S3Client::new(region.clone())
         .put_object(PutObjectRequest {
             bucket: bucket.to_string(),
             key: key.to_string(),
@@ -36,9 +36,9 @@ pub async fn upload_to_s3(
 
 /// Downloads string data from s3 bucket.
 pub async fn download_from_s3(
-    region: Region,
-    bucket: String,
-    key: String,
+    region: &Region,
+    bucket: &str,
+    key: &str,
 ) -> Result<String, AppError> {
     let download_error = |err: String| AppError {
         message: "cannot download from s3".to_string(),
@@ -48,10 +48,10 @@ pub async fn download_from_s3(
         ),
     };
 
-    let object = S3Client::new(region)
+    let object = S3Client::new(region.clone())
         .get_object(GetObjectRequest {
             bucket: bucket.to_string(),
-            key: key.clone(),
+            key: key.to_string(),
             ..Default::default()
         })
         .await
@@ -70,10 +70,8 @@ pub async fn download_from_s3(
         .await
         .map_err(|err| download_error(format!("cannot get body: '{}'", err)));
 
-    let content = body.and_then(|body| {
+    body.and_then(|body| {
         String::from_utf8(body.to_vec())
             .map_err(|err| download_error(format!("cannot convert to utf8 string: '{}'", err)))
-    });
-
-    content
+    })
 }

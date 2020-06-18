@@ -1,11 +1,9 @@
 use aws_lambda_events::event::s3::S3Event;
-use common::aws::{download_from_s3, upload_to_s3};
-use common::models::{AppError, State, Transition};
+use common::aws::Region;
+use common::models::{AppError, Progress, State};
 use common::runtime::*;
-use futures::TryFutureExt;
 use lambda_runtime::{error::HandlerError, lambda};
 use lambdas::common::submit_batch_job;
-use rusoto_core::Region;
 use std::error::Error;
 use std::iter::once;
 
@@ -42,50 +40,53 @@ fn create_batch_job(problem_path: String) -> Result<(), AppError> {
 
     let region = get_region()?;
     let bucket = get_bucket()?;
-    let state_key = get_state_key(&submission_id);
 
     get_async_runtime()?.block_on(async move {
-        let state_data =
-            download_from_s3(region.clone(), bucket.clone(), state_key.clone()).await?;
-        let state = Transition::from_state(state_data.as_str())?;
+        let state = get_state(&region, &bucket, &submission_id).await?;
 
-        match state.last() {
-            Some(transition) if transition.state == State::Submitted => {
-                submit_batch_job_within_state(submission_id, region, bucket, state_key, state).await
+        match state.progress() {
+            Some(progress) if progress == Progress::Submitted => {
+                submit_batch_job_within_state(&region, &bucket, &submission_id, &state).await
             }
-            Some(transition) if transition.state == State::Runnable => {
+            Some(progress) if progress == Progress::Runnable => {
                 println!(
                     "batch job is already created with id: '{}'",
-                    transition
-                        .payload
-                        .clone()
-                        .unwrap_or_else(|| "<empty>".to_string())
+                    state.payload().unwrap_or_else(|| "<empty>".to_string())
                 );
                 Ok(())
             }
             _ => Err(AppError {
                 message: "unexpected submission state".to_string(),
-                details: format!("raw state data: '{}'", state_data),
+                details: format!("state: '{:?}'", state),
             }),
         }
     })
 }
 
 async fn submit_batch_job_within_state(
-    submission_id: String,
-    region: Region,
-    bucket: String,
-    state_key: String,
-    state: Vec<Transition>,
+    region: &Region,
+    bucket: &str,
+    submission_id: &str,
+    state: &State,
 ) -> Result<(), AppError> {
-    let batch_job_id = push_batch_job(&submission_id).await?;
+    let job_queue = get_environment_variable("JOB_QUEUE")?;
+    let job_definition = get_environment_variable("JOB_DEFINITION")?;
+    let job_name = submission_id.to_string();
+    let job_parameters =
+        Some(once(("submission-id".to_string(), submission_id.to_string())).collect());
 
+    let batch_job_id = submit_batch_job(
+        region.clone(),
+        job_queue,
+        job_definition,
+        job_name,
+        job_parameters,
+    )
+    .await?;
     println!("created batch job with id '{}'", batch_job_id);
 
-    let new_state_data =
-        Transition::new(State::Runnable, Some(submission_id.clone())).to_state(state.as_slice())?;
-
-    upload_to_s3(region, bucket, state_key, new_state_data)
+    save_state(region, bucket, &submission_id, state)
+        .await
         .map_err(|err| {
             eprintln!(
                 "batch job created but state change failed, {}",
@@ -93,19 +94,4 @@ async fn submit_batch_job_within_state(
             );
             err
         })
-        .await?;
-
-    Ok(())
-}
-
-async fn push_batch_job(submission_id: &str) -> Result<String, AppError> {
-    let region = get_region()?;
-
-    let job_queue = get_environment_variable("JOB_QUEUE")?;
-    let job_definition = get_environment_variable("JOB_DEFINITION")?;
-    let job_name = submission_id.to_string();
-    let job_parameters =
-        Some(once(("submission-id".to_string(), submission_id.to_string())).collect());
-
-    submit_batch_job(region, job_queue, job_definition, job_name, job_parameters).await
 }
