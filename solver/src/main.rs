@@ -25,11 +25,15 @@ async fn process_problem() -> Result<(), AppError> {
     println!("submission id is '{}'", ctx.submit_id);
 
     let state = get_state(&ctx).await?;
-    match state.progress() {
+    let result = match state.progress() {
         Some(progress) if progress == Progress::Runnable => {
             let problem = get_problem(&ctx).await?;
-            let state =
-                apply_state_change(&ctx, state, Transition::new(Progress::Running, None)).await?;
+            let state = apply_state_change(
+                &ctx,
+                state.clone(),
+                Transition::new(Progress::Running, None),
+            )
+            .await?;
 
             let solution = solve_problem(problem)?;
 
@@ -46,6 +50,18 @@ async fn process_problem() -> Result<(), AppError> {
             message: "unexpected state".to_string(),
             details: "unknown state progress".to_string(),
         }),
+    };
+
+    if let Err(err) = result {
+        // NOTE if error occurs, try to save failed state to signalize client about the failure
+        // TODO make it depend on retry index specified by environment variable if batch job
+        //      retry enabled
+        let state = state.transition(Transition::new(Progress::Failed, Some(err.to_string())));
+        let _ = save_state(&ctx, &state).await;
+
+        Err(err)
+    } else {
+        Ok(())
     }
 }
 
