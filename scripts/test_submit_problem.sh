@@ -13,7 +13,7 @@ api_gateway_id=$1
 
 pushd "$root_dir/scripts"
 
-curl -d "@test_data.json" -H "Content-Type: application/json" -X POST \
+curl -d "@test_data.json" -H "Content-Type: application/json" -i -X POST \
   https://"$api_gateway_id".execute-api.eu-west-1.amazonaws.com/test/problem
 
 popd

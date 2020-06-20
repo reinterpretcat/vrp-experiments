@@ -9,13 +9,12 @@ if [[ $# -eq 0 ]] ; then
     exit 0
 fi
 
-
 api_gateway_id=$1
 submit_id=$2
 
 pushd "$root_dir/scripts"
 
-curl -H "Accept: application/json" -H 'x-amazon-apigateway-integration: POST'  \
+curl -H "Accept: application/json" -i \
   -X GET https://"$api_gateway_id".execute-api.eu-west-1.amazonaws.com/test/solution?submit_id="$submit_id"
 
 popd
