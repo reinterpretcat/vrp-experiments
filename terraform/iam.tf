@@ -30,6 +30,11 @@ resource "aws_iam_policy" "vrp_solver_lambda_policy" {
   "Statement": [
     {
       "Effect": "Allow",
+      "Action": ["logs:*"],
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Effect": "Allow",
       "Action": ["s3:*"],
       "Resource": "arn:aws:s3:::*"
     },

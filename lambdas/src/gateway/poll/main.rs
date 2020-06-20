@@ -22,12 +22,13 @@ fn poll_handler(
 fn get_solution_response(
     request: ApiGatewayProxyRequest,
 ) -> Result<ApiGatewayProxyResponse, AppError> {
+    // TODO return 400 if submit id is not defined
     let submit_id = request
-        .path_parameters
-        .get("id")
+        .query_string_parameters
+        .get("submit_id")
         .ok_or_else(|| AppError {
             message: "cannot get submit id".to_string(),
-            details: format!("path parameters: {:?}", request.path_parameters),
+            details: format!("query string parameters: {:?}", request.query_string_parameters),
         })?
         .clone();
 
