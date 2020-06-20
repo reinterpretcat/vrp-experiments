@@ -3,7 +3,7 @@ use common::aws::download_from_s3;
 use common::models::{AppError, Context, Progress};
 use common::runtime::{get_async_runtime, get_solution_key, get_state};
 use lambda_runtime::{error::HandlerError, lambda};
-use lambdas::common::{conflict, internal_server_error, no_content, not_found, ok};
+use lambdas::common::{conflict, internal_server_error, no_content, not_found, ok, bad_request};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -22,17 +22,13 @@ fn poll_handler(
 fn get_solution_response(
     request: ApiGatewayProxyRequest,
 ) -> Result<ApiGatewayProxyResponse, AppError> {
-    // TODO return 400 if submit id is not defined
-    let submit_id = request
-        .query_string_parameters
-        .get("submit_id")
-        .ok_or_else(|| AppError {
-            message: "cannot get submit id".to_string(),
-            details: format!("query string parameters: {:?}", request.query_string_parameters),
-        })?
-        .clone();
+    let submit_id = request.query_string_parameters.get("submit_id").cloned();
 
-    let ctx = Context::new(submit_id)?;
+    if submit_id.is_none() {
+        return Ok(bad_request(Some("no submit_id specified in query string parameters".to_string())))
+    }
+
+    let ctx = Context::new(submit_id.expect("invalid submit id"))?;
 
     get_async_runtime()?.block_on(async move {
         let state = get_state(&ctx).await;
