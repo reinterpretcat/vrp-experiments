@@ -44,7 +44,7 @@ resource "aws_api_gateway_integration" "poll_solution_api_gateway_integration" {
   resource_id = aws_api_gateway_method.solution_api_resource_method.resource_id
   http_method = aws_api_gateway_method.solution_api_resource_method.http_method
 
-  integration_http_method = "GET"
+  integration_http_method = "POST"
   type = "AWS_PROXY"
   uri = aws_lambda_function.poll_solution_function.invoke_arn
 }
