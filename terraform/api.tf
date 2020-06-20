@@ -58,3 +58,15 @@ resource "aws_api_gateway_deployment" "vrp_solver_api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.vrp_solver_api.id
   stage_name = "test"
 }
+
+resource "aws_api_gateway_method_settings" "vrp_solver_api_settings" {
+  rest_api_id = aws_api_gateway_rest_api.vrp_solver_api.id
+  stage_name  = aws_api_gateway_deployment.vrp_solver_api_deployment.stage_name
+  method_path = "*/*"
+
+  settings {
+    logging_level = "INFO"
+    data_trace_enabled = true
+    metrics_enabled = true
+  }
+}
