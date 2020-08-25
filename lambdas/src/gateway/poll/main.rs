@@ -3,7 +3,7 @@ use common::aws::download_from_s3;
 use common::models::{AppError, Context, Progress};
 use common::runtime::{get_async_runtime, get_solution_key, get_state};
 use lambda_runtime::{error::HandlerError, lambda};
-use lambdas::common::{conflict, internal_server_error, no_content, not_found, ok, bad_request};
+use lambdas::common::{bad_request, conflict, internal_server_error, no_content, not_found, ok};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -25,7 +25,9 @@ fn get_solution_response(
     let submit_id = request.query_string_parameters.get("submit_id").cloned();
 
     if submit_id.is_none() {
-        return Ok(bad_request(Some("no submit_id specified in query string parameters".to_string())))
+        return Ok(bad_request(Some(
+            "no submit_id specified in query string parameters".to_string(),
+        )));
     }
 
     let ctx = Context::new(submit_id.expect("invalid submit id"))?;
@@ -33,18 +35,22 @@ fn get_solution_response(
     get_async_runtime()?.block_on(async move {
         let state = get_state(&ctx).await;
 
-        Ok(match state.as_ref().ok().and_then(|state| state.progress()) {
-            Some(progress) if is_not_yet_solved(progress.clone()) => {
-                // TODO based on progress and algorithm termination settings, we can provide more
-                //      information about when to expect solution to be ready
-                no_content(None)
-            }
-            Some(progress) if progress == Progress::Success => ok(Some(get_solution(&ctx).await?)),
-            Some(progress) if progress == Progress::Failed => {
-                conflict(state.ok().and_then(|s| s.payload()))
-            }
-            _ => not_found(None),
-        })
+        Ok(
+            match state.as_ref().ok().and_then(|state| state.progress()) {
+                Some(progress) if is_not_yet_solved(progress.clone()) => {
+                    // TODO based on progress and algorithm termination settings, we can provide more
+                    //      information about when to expect solution to be ready
+                    no_content(None)
+                }
+                Some(progress) if progress == Progress::Success => {
+                    ok(Some(get_solution(&ctx).await?))
+                }
+                Some(progress) if progress == Progress::Failed => {
+                    conflict(state.ok().and_then(|s| s.payload()))
+                }
+                _ => not_found(None),
+            },
+        )
     })
 }
 

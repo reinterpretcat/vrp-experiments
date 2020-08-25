@@ -5,7 +5,17 @@ another Rust project which implements a rich VRP solver functionality, you can f
 
 # Overview
 
-## Architecture
+This repo contains two implementations of REST API:
+
+* `server` a traditional server approach built using [actix-web framework](https://github.com/actix/actix-web)
+* `serverless` a serverless approach using AWS lambdas
+
+## Server approach
+
+
+## Serverless approach
+
+### Architecture
 
 On API level, there are two public endpoints:
 
@@ -42,7 +52,8 @@ so another logic might be needed here and it is better to avoid coupling problem
 
 - __Rust code__:
     - `./common`: contains shared code used by different crates in the project
-    - `./lambdas`: contains code for AWS lambda functions
+    - `./lambdas`: contains code for AWS lambda functions used by `serverless` approach
+    - `./server`: contains code for server approach
     - `./solver`: contains a binary crate for solving VRP problem
 - __Build & Deployment & Test__
     - `./terraform`: terraform configuration to deploy AWS resources
@@ -109,7 +120,7 @@ It builds rust code and copies build artifacts into `artifacts` folder.
   terraform apply -var-file="private.tfvars"
 ```
 
-## Test
+## Test serverless
 
 If you decided to use different AWS region, adjust url in tests scripts according to
 [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-call-api.html).

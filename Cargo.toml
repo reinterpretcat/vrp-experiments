@@ -3,6 +3,7 @@
 members = [
     "common",
     "lambdas",
+    "server",
     "solver",
 ]
 
