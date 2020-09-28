@@ -1,3 +1,5 @@
+mod routes;
+
 use actix_web::{get, web, App, HttpServer, Responder};
 
 #[get("/{id}/{name}/index.html")]

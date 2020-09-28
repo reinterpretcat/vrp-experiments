@@ -1,13 +1,2 @@
-/artifacts
-/target
-
-*Cargo.lock
-
 .idea
 *.iml
-
-.terraform
-*.tfstate*
-*.tfvars*
-
-*.zip

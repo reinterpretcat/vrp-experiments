@@ -1,0 +1,10 @@
+/artifacts
+/target
+
+*Cargo.lock
+
+.terraform
+*.tfstate*
+*.tfvars*
+
+*.zip
