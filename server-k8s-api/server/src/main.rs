@@ -1,6 +1,10 @@
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer};
 
 mod problem;
+
+async fn index(_req: HttpRequest) -> HttpResponse {
+    HttpResponse::Ok().finish()
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -15,6 +19,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .service(web::resource("/").route(web::get().to(index)))
             .service(web::resource("/problems").route(web::post().to(problem::solution)))
     })
     .bind(format!("127.0.0.1:{}", port).as_str())?
