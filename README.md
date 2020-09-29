@@ -4,5 +4,5 @@ This repo contains various experiments with technologies, languages, tools in co
 
 # Content
 
-* **serverless-api**: experimenting with serverless computing on AWS + Rust
+* **serverless-aws**: experimenting with serverless computing on AWS + Rust
 * **server-k8s-api**: experimenting with kubernetes + REST server on Rust
