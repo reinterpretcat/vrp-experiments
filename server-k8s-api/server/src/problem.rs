@@ -34,12 +34,18 @@ pub async fn solution(api_problem: web::Json<ApiProblem>) -> web::Json<Solution>
         .clone()
         .unwrap_or_else(CliConfig::default);
 
-    let (core_solution, _, metrics) = create_builder_from_config(core_problem.clone(), &cli_config)
-        .and_then(|builder| builder.build())
-        .and_then(|solver| solver.solve())
-        .unwrap();
+    let core_problem_copy = core_problem.clone();
 
-    let api_solution = create_solution(core_problem.as_ref(), &core_solution, metrics.as_ref());
+    let (core_solution, _, metrics) = web::block(move || {
+        create_builder_from_config(core_problem, &cli_config)
+            .and_then(|builder| builder.build())
+            .and_then(|solver| solver.solve())
+    })
+    .await
+    .unwrap();
+
+    let api_solution =
+        create_solution(core_problem_copy.as_ref(), &core_solution, metrics.as_ref());
 
     web::Json(api_solution)
 }
