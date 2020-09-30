@@ -5,10 +5,9 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: ghcr.io/reinterpretcat/vrp-experiments/vrp-server
   pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: "vrp-server-app"
@@ -32,13 +31,18 @@ securityContext:
   capabilities:
     drop:
     - ALL
+    add:
+    - NET_BIND_SERVICE
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 1000
 
 service:
+  name: vrp-server
   type: NodePort
-  port: 80
+  externalPort: 9000
+  internalPort: 8000
+  rustLog: actix_web=debug
 
 ingress:
   enabled: false

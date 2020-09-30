@@ -2,7 +2,7 @@ use actix_web::{middleware::Logger, web, App, HttpRequest, HttpResponse, HttpSer
 
 mod problem;
 
-async fn index(_req: HttpRequest) -> HttpResponse {
+async fn healthz(_req: HttpRequest) -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
@@ -18,10 +18,10 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .service(web::resource("/").route(web::get().to(index)))
+            .service(web::resource("/healthz").route(web::get().to(healthz)))
             .service(web::resource("/problems").route(web::post().to(problem::solution)))
     })
-    .bind(format!("127.0.0.1:{}", port).as_str())?
+    .bind(format!("0.0.0.0:{}", port).as_str())?
     .run()
     .await
 }

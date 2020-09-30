@@ -11,13 +11,18 @@ RUN cargo build --release
 
 FROM alpine:3.12
 
+RUN apk --no-cache add ca-certificates
+
 ENV APP_USER=user
-RUN addgroup $APP_USER && adduser -S $APP_USER -G $APP_USER
+ENV UID=1000
+ENV GID=1000
+RUN addgroup --gid=${GID} $APP_USER && adduser -S $APP_USER --uid=${UID} -G $APP_USER
 
 RUN mkdir /app
-COPY --from=Builder /src/target/release/server /app/server
-RUN chown -R $APP_USER:$APP_USER /app/server
+COPY --from=Builder /src/target/release/server /usr/local/bin/server
 
-USER $APP_USER
+RUN chown -R $APP_USER:$APP_USER /usr/local/bin/server
 
-CMD ["/app/server"]
+USER ${UID}:${GID}
+
+CMD ["/usr/local/bin/server"]

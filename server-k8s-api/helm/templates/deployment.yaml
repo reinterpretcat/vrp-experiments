@@ -33,18 +33,21 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PORT
+              value: "{{ .Values.service.internalPort }}"
+            - name: RUST_LOG
+              value: "{{ .Values.service.rustLog }}"
           ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
+            - containerPort: {{ .Values.service.internalPort }}
           livenessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /healthz
+              port: {{ .Values.service.internalPort }}
           readinessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /healthz
+              port: {{ .Values.service.internalPort }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
